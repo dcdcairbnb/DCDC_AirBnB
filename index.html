@@ -289,6 +289,9 @@
       var emoji = dNash <= dCo ? '🎵' : '⛷️';
       banner.innerHTML = emoji + ' You\'re <strong>' + dNash.toLocaleString() + ' mi</strong> from Nashville &nbsp;·&nbsp; <strong>' + dCo.toLocaleString() + ' mi</strong> from Colorado &nbsp;·&nbsp; <strong>' + closer + '</strong> is closer to you';
       banner.style.display = 'block';
+      setTimeout(function() {
+        banner.style.display = 'none';
+      }, 20000);
     }, function() {}, { timeout: 5000 });
   }
 })();
@@ -320,7 +323,7 @@
     <p class="prop-rating">&#9733; 4.97 stars &nbsp;·&nbsp; 34 reviews &nbsp;·&nbsp; Airbnb Guest Favorite</p>
     <div style="display: flex; gap: 12px; justify-content: center; flex-wrap: wrap;">
       <a href="https://airbnb.com/h/nashvillemusiccitystay" class="cta-button">View Nashville Property</a>
-      <a href="https://airbnb.com/h/nashvillemusiccitystay" class="cta-button secondary" style="background: rgba(233,69,96,0.1); color: #e94560; border: 2px solid #e94560;">Message Host</a>
+      <a href="https://airbnb.com/h/nashvillemusiccitystay" class="cta-button" style="background: white; color: #e94560; border: 2px solid #e94560;">Message Host</a>
     </div>
   </div>
 
