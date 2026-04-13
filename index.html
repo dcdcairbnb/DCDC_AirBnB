@@ -245,12 +245,44 @@
   <div class="hero-content">
     <h1>Two Properties. Two Destinations.</h1>
     <p class="subtitle">Nashville, Tennessee &nbsp;·&nbsp; Silverthorne, Colorado<br>Both sleep 6. Both rated 4.8+ stars on Airbnb.</p>
+    <div id="geo-banner" style="display:none; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); border-radius: 8px; padding: 10px 20px; margin-bottom: 20px; font-size: 0.9rem; opacity: 0.95;"></div>
     <div class="hero-buttons">
       <a href="https://airbnb.com/h/nashvillemusiccitystay" class="cta-button">Book Nashville</a>
       <a href="https://www.airbnb.com/rooms/920827114586721400?photo_id=2158532606&source_impression_id=p3_1775999753_P3eA0Y4HDE4Zt707&previous_page_section_name=1000" class="cta-button co-button">Book Colorado</a>
     </div>
   </div>
 </div>
+
+<script>
+(function() {
+  function toRad(deg) { return deg * Math.PI / 180; }
+  function distanceMiles(lat1, lon1, lat2, lon2) {
+    var R = 3958.8;
+    var dLat = toRad(lat2 - lat1);
+    var dLon = toRad(lon2 - lon1);
+    var a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+            Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+            Math.sin(dLon/2) * Math.sin(dLon/2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(pos) {
+      var lat = pos.coords.latitude;
+      var lon = pos.coords.longitude;
+      var nashLat = 36.1627, nashLon = -86.7816;
+      var coLat = 39.6328, coLon = -106.0662;
+      var dNash = Math.round(distanceMiles(lat, lon, nashLat, nashLon));
+      var dCo = Math.round(distanceMiles(lat, lon, coLat, coLon));
+      var banner = document.getElementById('geo-banner');
+      var closer = dNash <= dCo ? 'Nashville' : 'Colorado';
+      var emoji = dNash <= dCo ? '🎵' : '⛷️';
+      banner.innerHTML = emoji + ' You\'re <strong>' + dNash.toLocaleString() + ' mi</strong> from Nashville &nbsp;·&nbsp; <strong>' + dCo.toLocaleString() + ' mi</strong> from Colorado &nbsp;·&nbsp; <strong>' + closer + '</strong> is closer to you';
+      banner.style.display = 'block';
+    }, function() {}, { timeout: 5000 });
+  }
+})();
+</script>
 
 <!-- STICKY NAV -->
 <div class="property-picker">
@@ -619,5 +651,18 @@
   <p style="margin-top: 8px;"><a href="https://dcdcairbnb.github.io/DCDC_AirBnB/" style="color: #0ea5e9; text-decoration: none;">dcdcairbnb.github.io/DCDC_AirBnB</a></p>
 </footer>
 
+<!-- Statcounter invisible tracking -->
+<script type="text/javascript">
+var sc_project=13221801;
+var sc_invisible=1;
+var sc_security="f5e2a326";
+</script>
+<script type="text/javascript"
+src="https://www.statcounter.com/counter/counter.js" async></script>
+<noscript><div class="statcounter"><a title="Web Analytics"
+href="https://statcounter.com/" target="_blank"><img class="statcounter"
+src="https://c.statcounter.com/13221801/0/f5e2a326/1/" alt="Web Analytics"
+referrerPolicy="no-referrer-when-downgrade"></a></div></noscript>
+<!-- End of Statcounter Code -->
 </body>
 </html>
