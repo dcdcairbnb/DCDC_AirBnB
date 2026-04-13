@@ -276,6 +276,18 @@
     return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
   }
 
+  function getLocationName(lat, lon) {
+    return fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lon)
+      .then(function(response) { return response.json(); })
+      .then(function(data) {
+        var city = data.address.city || data.address.town || data.address.village || 'Unknown';
+        var state = data.address.state || '';
+        var country = data.address.country || '';
+        return city + (state ? ', ' + state : '') + (country ? ', ' + country : '');
+      })
+      .catch(function() { return 'Your Location'; });
+  }
+
   if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(function(pos) {
       var lat = pos.coords.latitude;
@@ -287,11 +299,48 @@
       var banner = document.getElementById('distance-banner');
       var closer = dNash <= dCo ? 'Nashville' : 'Colorado';
       var emoji = dNash <= dCo ? '🎵' : '⛷️';
-      banner.innerHTML = emoji + ' You\'re <strong>' + dNash.toLocaleString() + ' mi</strong> from Nashville &nbsp;·&nbsp; <strong>' + dCo.toLocaleString() + ' mi</strong> from Colorado &nbsp;·&nbsp; <strong>' + closer + '</strong> is closer to you';
-      banner.style.display = 'block';
-      setTimeout(function() {
-        banner.style.display = 'none';
-      }, 20000);
+
+      getLocationName(lat, lon).then(function(location) {
+        banner.innerHTML = emoji + ' <strong>' + location + '</strong> &nbsp;·&nbsp; <strong>' + dNash + ' mi</strong> to Nashville &nbsp;·&nbsp; <strong>' + dCo + ' mi</strong> to Colorado';
+        banner.style.display = 'block';
+        setTimeout(function() {
+          banner.style.display = 'none';
+        }, 20000);
+
+        // Log geolocation data
+        var now = new Date();
+        var date = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+        var time = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0');
+        var parts = location.split(', ');
+        var city = parts[0] || 'Unknown';
+        var state = parts[1] || 'Unknown';
+        var country = parts[2] || 'Unknown';
+
+        // Store in localStorage for later retrieval
+        var geoData = {
+          date: date,
+          time: time,
+          city: city,
+          state: state,
+          country: country,
+          distance_to_nashville: dNash,
+          distance_to_colorado: dCo
+        };
+        localStorage.setItem('geo_' + date + '_' + time.replace(/:/g, '-'), JSON.stringify(geoData));
+
+        // Send to server for CSV logging
+        fetch('http://localhost:5000/log-geolocation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(geoData)
+        })
+        .then(function(response) {
+          console.log('Geolocation logged to server');
+        })
+        .catch(function(error) {
+          console.log('Server logging unavailable (service may not be running)');
+        });
+      });
     }, function() {}, { timeout: 5000 });
   }
 })();
