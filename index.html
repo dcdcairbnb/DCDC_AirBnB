@@ -7,21 +7,62 @@
 <meta name="description" content="Two premium Airbnb properties. Music City Retreat in Nashville, TN and River West 522 in Silverthorne, CO. Both sleep 6, rated 4.8+ stars.">
 
 <style>
-/* (ALL YOUR EXISTING CSS — UNCHANGED) */
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: #1a1a2e; line-height: 1.6; }
-/* KEEP REST EXACTLY AS YOU HAD IT */
+
+/* HERO */
+.hero {
+  position: relative;
+  height: 85vh;
+  min-height: 500px;
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: white;
+}
+.hero-content { max-width: 750px; padding: 0 24px; }
+.hero h1 { font-size: 3rem; margin-bottom: 12px; }
+.hero .subtitle { margin-bottom: 36px; }
+.hero-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+
+.cta-button {
+  background: #e94560;
+  color: white;
+  padding: 14px 32px;
+  border-radius: 8px;
+  text-decoration: none;
+}
+.co-button { background: #0ea5e9; }
+
+/* DISTANCE BANNER */
+#distance-banner {
+  background:red;
+  color:white;
+  text-align:center;
+  padding:15px;
+  display:none;
+}
+
+/* LOCATION */
+.location-list { max-width: 600px; margin: 0 auto; }
+.location-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #eee;
+}
+.distance { color: #e94560; font-weight: 600; }
 </style>
 </head>
 
 <body>
 
-<!-- HERO -->
 <div class="hero">
   <div class="hero-content">
     <h1>Two Properties. Two Destinations.</h1>
-    <p class="subtitle">Nashville, Tennessee · Silverthorne, Colorado<br>Both sleep 6. Both rated 4.8+ stars on Airbnb.</p>
-
+    <p class="subtitle">Nashville, Tennessee · Silverthorne, Colorado</p>
     <div class="hero-buttons">
       <a href="https://airbnb.com/h/nashvillemusiccitystay" class="cta-button">View Nashville Property</a>
       <a href="https://www.airbnb.com/rooms/920827114586721400" class="cta-button co-button">View Colorado Property</a>
@@ -29,136 +70,109 @@ body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: #1a
   </div>
 </div>
 
-<!-- DISTANCE BANNER -->
-<div id="distance-banner" style="background:red;color:white;text-align:center;padding:15px;display:none;"></div>
+<div id="distance-banner"></div>
 
 <script>
 (function() {
 
-  const WEBHOOK_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
+const WEBHOOK_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
 
-  function sendData(data) {
-    fetch(WEBHOOK_URL, {
-      method: "POST",
-      mode: "no-cors",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data)
-    }).catch(() => {});
-  }
+function sendData(data) {
+  fetch(WEBHOOK_URL, {
+    method: "POST",
+    mode: "no-cors",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data)
+  }).catch(() => {});
+}
 
-  function getTimestamp() {
-    return new Date().toISOString();
-  }
+function getTimestamp() { return new Date().toISOString(); }
 
-  function getDeviceInfo() {
-    return navigator.userAgent;
-  }
+function sendGeo(lat, lon) {
+  sendData({
+    timestamp: getTimestamp(),
+    lat: lat,
+    lon: lon,
+    page: window.location.href
+  });
+}
 
-  function sendGeo(lat, lon) {
-    sendData({
-      timestamp: getTimestamp(),
-      lat: lat,
-      lon: lon,
-      source: "browser",
-      device: getDeviceInfo(),
-      page: window.location.href
-    });
-  }
-
-  function sendIPFallback() {
-    fetch("https://ipapi.co/json/")
-      .then(res => res.json())
-      .then(data => {
-        sendData({
-          timestamp: getTimestamp(),
-          ip: data.ip,
-          city: data.city,
-          region: data.region,
-          country: data.country_name,
-          lat: data.latitude,
-          lon: data.longitude,
-          source: "ip",
-          device: getDeviceInfo(),
-          page: window.location.href
-        });
-      })
-      .catch(() => {
-        sendData({
-          timestamp: getTimestamp(),
-          source: "unknown",
-          device: getDeviceInfo(),
-          page: window.location.href
-        });
+function sendIPFallback() {
+  fetch("https://ipapi.co/json/")
+    .then(res => res.json())
+    .then(data => {
+      sendData({
+        timestamp: getTimestamp(),
+        city: data.city,
+        region: data.region,
+        country: data.country_name,
+        lat: data.latitude,
+        lon: data.longitude,
+        page: window.location.href
       });
-  }
+    });
+}
 
-  function toRad(deg) { return deg * Math.PI / 180; }
+function toRad(deg){ return deg * Math.PI / 180; }
 
-  function distanceMiles(lat1, lon1, lat2, lon2) {
-    var R = 3958.8;
-    var dLat = toRad(lat2 - lat1);
-    var dLon = toRad(lon2 - lon1);
-    var a =
-      Math.sin(dLat/2)*Math.sin(dLat/2) +
-      Math.cos(toRad(lat1))*Math.cos(toRad(lat2)) *
-      Math.sin(dLon/2)*Math.sin(dLon/2);
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-  }
+function distanceMiles(lat1, lon1, lat2, lon2){
+  var R = 3958.8;
+  var dLat = toRad(lat2-lat1);
+  var dLon = toRad(lon2-lon1);
+  var a = Math.sin(dLat/2)**2 +
+          Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*
+          Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
 
-  function showDistanceBanner(lat, lon) {
-    var nashLat = 36.1627, nashLon = -86.7816;
-    var coLat = 39.6328, coLon = -106.0662;
+function showBanner(lat, lon){
+  var nLat=36.1627, nLon=-86.7816;
+  var cLat=39.6328, cLon=-106.0662;
 
-    var dNash = Math.round(distanceMiles(lat, lon, nashLat, nashLon));
-    var dCo = Math.round(distanceMiles(lat, lon, coLat, coLon));
+  var dN=Math.round(distanceMiles(lat,lon,nLat,nLon));
+  var dC=Math.round(distanceMiles(lat,lon,cLat,cLon));
 
-    var banner = document.getElementById("distance-banner");
+  var el=document.getElementById("distance-banner");
+  el.innerHTML = "You're "+dN+" mi from Nashville · "+dC+" mi from Colorado";
+  el.style.display="block";
 
-    var closer = dNash <= dCo ? "Nashville 🎵" : "Colorado ⛷️";
+  setTimeout(()=>el.style.display="none",20000);
+}
 
-    banner.innerHTML =
-      "You're <strong>" + dNash + " mi</strong> from Nashville · " +
-      "<strong>" + dCo + " mi</strong> from Colorado · " +
-      "<strong>" + closer + "</strong> is closer";
-
-    banner.style.display = "block";
-
-    setTimeout(() => {
-      banner.style.display = "none";
-    }, 20000);
-  }
-
-  // MAIN LOGIC
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      function(pos) {
-        var lat = pos.coords.latitude;
-        var lon = pos.coords.longitude;
-
-        sendGeo(lat, lon);
-        showDistanceBanner(lat, lon);
-      },
-      function() {
-        sendIPFallback();
-      },
-      { timeout: 5000 }
-    );
-  } else {
-    sendIPFallback();
-  }
+if (navigator.geolocation){
+  navigator.geolocation.getCurrentPosition(
+    pos=>{
+      var lat=pos.coords.latitude;
+      var lon=pos.coords.longitude;
+      sendGeo(lat,lon);
+      showBanner(lat,lon);
+    },
+    ()=>sendIPFallback(),
+    {timeout:5000}
+  );
+} else {
+  sendIPFallback();
+}
 
 })();
 </script>
 
-<!-- ===== KEEP REST OF YOUR PAGE EXACTLY THE SAME ===== -->
-<!-- Nashville section -->
-<!-- Colorado section -->
-<!-- Reviews -->
-<!-- Footer -->
-<!-- etc -->
+<!-- NASHVILLE LOCATION SECTION -->
+<section>
+  <h2 style="text-align:center;margin:40px 0;">The Location</h2>
 
-<footer style="text-align:center;padding:24px;font-size:0.85rem;color:#999;">
-  <p>Music City Retreat · River West 522 · dcdcairbnb@gmail.com</p>
+  <div class="location-list">
+    <div class="location-item"><span>Broadway Honky-Tonks</span><span class="distance">Minutes away</span></div>
+    <div class="location-item"><span>The Gulch</span><span class="distance">Minutes away</span></div>
+    <div class="location-item"><span>Germantown</span><span class="distance">Minutes away</span></div>
+    <div class="location-item"><span>Nissan Stadium</span><span class="distance">Short drive</span></div>
+    <div class="location-item"><span>Grand Ole Opry</span><span class="distance">15 min drive</span></div>
+    <div class="location-item"><span>Nashville International Airport (BNA)</span><span class="distance">20 min drive</span></div>
+  </div>
+</section>
+
+<footer style="text-align:center;padding:24px;color:#999;">
+  Music City Retreat · River West 522
 </footer>
 
 </body>
