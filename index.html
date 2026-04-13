@@ -274,7 +274,7 @@
       var coLat = 39.6328, coLon = -106.0662;
       var dNash = Math.round(distanceMiles(lat, lon, nashLat, nashLon));
       var dCo = Math.round(distanceMiles(lat, lon, coLat, coLon));
-      var banner = document.getElementById('geo-banner');
+      var banner = document.getElementById('distance-banner');
       var closer = dNash <= dCo ? 'Nashville' : 'Colorado';
       var emoji = dNash <= dCo ? '🎵' : '⛷️';
       banner.innerHTML = emoji + ' You\'re <strong>' + dNash.toLocaleString() + ' mi</strong> from Nashville &nbsp;·&nbsp; <strong>' + dCo.toLocaleString() + ' mi</strong> from Colorado &nbsp;·&nbsp; <strong>' + closer + '</strong> is closer to you';
@@ -297,6 +297,9 @@
     </a>
   </div>
 </div>
+
+<!-- DISTANCE BANNER -->
+<div id="distance-banner" style="background-color: red; color: white; text-align: center; padding: 15px 24px; font-size: 1rem; font-weight: 600; display: none;"></div>
 
 <!-- ===== NASHVILLE ===== -->
 <div id="nashville">
