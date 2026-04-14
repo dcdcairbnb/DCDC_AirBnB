@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Our Airbnb Properties | Nashville & Colorado</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: #1a1a2e; line-height: 1.6; }
+  .hero { height: 85vh; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); display: flex; align-items: center; justify-content: center; text-align: center; color: white; }
+  .hero-content { max-width: 750px; padding: 0 24px; }
+  .hero h1 { font-size: 3rem; font-weight: 700; margin-bottom: 12px; }
+  .hero .subtitle { font-size: 1.2rem; opacity: 0.85; margin-bottom: 36px; }
+  .cta-button { display: inline-block; background: #e94560; color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-size: 1rem; font-weight: 600; margin: 8px; }
+  .cta-button:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(233,69,96,0.4); }
+  #distance-banner { position: fixed; top: 0; left: 0; right: 0; width: 100%; z-index: 101; background-color: red; color: white; text-align: center; padding: 15px 24px; font-size: 1rem; font-weight: 600; display: none; }
+  section { padding: 60px 24px; max-width: 1000px; margin: 0 auto; }
+  .section-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 36px; text-align: center; }
+  footer { text-align: center; padding: 24px; font-size: 0.85rem; color: #999; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="hero-content">
+    <h1>Two Properties. Two Destinations.</h1>
+    <p class="subtitle">Nashville, Tennessee · Silverthorne, Colorado<br>Both sleep 6. Both rated 4.8+ stars on Airbnb.</p>
+    <div>
+      <a href="https://airbnb.com/h/nashvillemusiccitystay" class="cta-button">View Nashville Property</a>
+      <a href="https://www.airbnb.com/rooms/920827114586721400" class="cta-button" style="background: #0ea5e9;">View Colorado Property</a>
+    </div>
+  </div>
+</div>
+
+<div id="distance-banner"></div>
+
+<section>
+  <h2 class="section-title">Music City Retreat - Nashville</h2>
+  <p>Two themed bedrooms, sleeps 6. Free parking. Minutes from Broadway. 4.97 stars.</p>
+</section>
+
+<section>
+  <h2 class="section-title">River West 522 - Colorado</h2>
+  <p>Two themed bedrooms, sleeps 6. Mountain views. Ski access. 4.85 stars.</p>
+</section>
+
+<footer>
+  <p>&copy; 2026 DCDC Airbnb Properties. All rights reserved.</p>
+</footer>
+
+<script>
+(function() {
+  function toRad(deg) { return deg * Math.PI / 180; }
+  function distanceMiles(lat1, lon1, lat2, lon2) {
+    var R = 3958.8;
+    var dLat = toRad(lat2 - lat1);
+    var dLon = toRad(lon2 - lon1);
+    var a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLon/2) * Math.sin(dLon/2);
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  }
+
+  function getLocationName(lat, lon) {
+    return fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lon)
+      .then(function(response) { return response.json(); })
+      .then(function(data) {
+        var city = data.address.city || data.address.town || data.address.village || 'Unknown';
+        var state = data.address.state || '';
+        var country = data.address.country || '';
+        return city + (state ? ', ' + state : '') + (country ? ', ' + country : '');
+      })
+      .catch(function() { return 'Your Location'; });
+  }
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(pos) {
+      var lat = pos.coords.latitude;
+      var lon = pos.coords.longitude;
+      var nashLat = 36.1627, nashLon = -86.7816;
+      var coLat = 39.6328, coLon = -106.0662;
+      var dNash = Math.round(distanceMiles(lat, lon, nashLat, nashLon));
+      var dCo = Math.round(distanceMiles(lat, lon, coLat, coLon));
+      var banner = document.getElementById('distance-banner');
+
+      getLocationName(lat, lon).then(function(location) {
+        banner.innerHTML = '🎵 <strong>' + location + '</strong> · <strong>' + dNash + ' mi</strong> to Nashville · <strong>' + dCo + ' mi</strong> to Colorado';
+        banner.style.display = 'block';
+        setTimeout(function() { banner.style.display = 'none'; }, 20000);
+
+        var now = new Date();
+        var date = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+        var time = String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0');
+        var parts = location.split(', ');
+        var city = parts[0] || 'Unknown';
+        var state = parts[1] || 'Unknown';
+        var country = parts[2] || 'Unknown';
+
+        var geoData = { date: date, time: time, city: city, state: state, country: country, distance_to_nashville: dNash, distance_to_colorado: dCo };
+        localStorage.setItem('geo_' + date + '_' + time.replace(/:/g, '-'), JSON.stringify(geoData));
+
+        fetch('https://dcdcairbnb.pythonanywhere.com/log-geolocation', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(geoData)
+        }).catch(function() {});
+      });
+    }, function() {}, { timeout: 5000 });
+  }
+})();
+</script>
+
+</body>
+</html>
