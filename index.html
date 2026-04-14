@@ -4,48 +4,585 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Our Airbnb Properties | Nashville & Colorado</title>
+<meta name="description" content="Two premium Airbnb properties. Music City Retreat in Nashville, TN and River West 522 in Silverthorne, CO. Both sleep 6, rated 4.8+ stars.">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; color: #1a1a2e; line-height: 1.6; }
-  .hero { height: 85vh; background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); display: flex; align-items: center; justify-content: center; text-align: center; color: white; }
-  .hero-content { max-width: 750px; padding: 0 24px; }
-  .hero h1 { font-size: 3rem; font-weight: 700; margin-bottom: 12px; }
+  .hero {
+    position: relative;
+    height: 85vh;
+    min-height: 500px;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: white;
+    overflow: hidden;
+  }
+  .hero-content { position: relative; z-index: 1; max-width: 750px; padding: 0 24px; }
+  .hero h1 { font-size: 3rem; font-weight: 700; margin-bottom: 12px; letter-spacing: -0.5px; }
   .hero .subtitle { font-size: 1.2rem; opacity: 0.85; margin-bottom: 36px; }
-  .cta-button { display: inline-block; background: #e94560; color: white; text-decoration: none; padding: 14px 32px; border-radius: 8px; font-size: 1rem; font-weight: 600; margin: 8px; }
+  .hero-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+  .cta-button {
+    display: inline-block;
+    background: #e94560;
+    color: white;
+    text-decoration: none;
+    padding: 14px 32px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .cta-button.secondary {
+    background: transparent;
+    border: 2px solid white;
+  }
   .cta-button:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(233,69,96,0.4); }
-  #distance-banner { position: fixed; top: 0; left: 0; right: 0; width: 100%; z-index: 101; background-color: red; color: white; text-align: center; padding: 15px 24px; font-size: 1rem; font-weight: 600; display: none; }
+  .cta-button.secondary:hover { box-shadow: 0 8px 24px rgba(255,255,255,0.2); }
+  .property-picker {
+    background: white;
+    border-bottom: 1px solid #eee;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  }
+  .picker-inner {
+    max-width: 1000px;
+    margin: 0 auto;
+    display: flex;
+    gap: 0;
+  }
+  .picker-tab {
+    flex: 1;
+    padding: 18px 24px;
+    text-align: center;
+    cursor: pointer;
+    border-bottom: 3px solid transparent;
+    font-weight: 600;
+    font-size: 1rem;
+    color: #666;
+    text-decoration: none;
+    transition: all 0.2s;
+  }
+  .picker-tab:hover { color: #1a1a2e; }
+  .picker-tab.nashville { border-bottom-color: #e94560; color: #1a1a2e; }
+  .picker-tab.colorado { border-bottom-color: #2d6a4f; color: #1a1a2e; }
+  .picker-tab span { display: block; font-size: 0.8rem; font-weight: 400; color: #999; margin-top: 2px; }
+  .property-divider {
+    text-align: center;
+    padding: 60px 24px 0;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  .property-label {
+    display: inline-block;
+    padding: 6px 20px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .property-label.nashville { background: #fde8ec; color: #e94560; }
+  .property-label.colorado { background: #d8f3dc; color: #2d6a4f; }
+  .property-divider h2 { font-size: 2.2rem; font-weight: 700; margin-bottom: 6px; }
+  .property-divider .prop-sub { font-size: 1.1rem; color: #666; margin-bottom: 4px; }
+  .property-divider .prop-rating { font-size: 1rem; color: #999; margin-bottom: 20px; }
+  .property-divider .cta-button { margin-bottom: 0; }
+  .co-button { background: #0ea5e9; }
+  .co-button:hover { box-shadow: 0 8px 24px rgba(14,165,233,0.4); }
+  .property-image {
+    max-width: 1000px;
+    margin: 0 auto 40px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+  }
+  .property-image img {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+    display: block;
+  }
   section { padding: 60px 24px; max-width: 1000px; margin: 0 auto; }
   .section-title { font-size: 1.8rem; font-weight: 700; margin-bottom: 36px; text-align: center; }
+  .amenities-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+  }
+  .amenity-card {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 24px 20px;
+    text-align: center;
+    transition: transform 0.2s;
+  }
+  .amenity-card:hover { transform: translateY(-4px); }
+  .amenity-icon { font-size: 1.8rem; margin-bottom: 10px; }
+  .amenity-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; }
+  .amenity-card p { font-size: 0.85rem; color: #666; }
+  .details-section { background: #f8f9fa; }
+  .details-section section { max-width: 1000px; }
+  .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+  .detail-block h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 12px; color: #1a1a2e; }
+  .detail-block p { color: #444; font-size: 0.95rem; }
+  .detail-block ul { list-style: none; padding: 0; }
+  .detail-block ul li { padding: 5px 0; color: #444; font-size: 0.95rem; }
+  .detail-block ul li::before { content: "\2713  "; color: #e94560; font-weight: 700; }
+  .co-check ul li::before { color: #2d6a4f; }
+  .rooms-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+  }
+  .room-card {
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .room-card:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.1); }
+  .room-card-header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #0f3460 100%);
+    padding: 24px;
+    text-align: center;
+    color: white;
+  }
+  .room-card-header.co { background: linear-gradient(135deg, #1b4332 0%, #2d6a4f 100%); }
+  .room-icon { font-size: 2.2rem; margin-bottom: 8px; }
+  .room-card-header h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 4px; }
+  .room-card-header .room-theme { font-size: 0.8rem; opacity: 0.8; letter-spacing: 1px; text-transform: uppercase; }
+  .room-card-body { padding: 18px 22px; }
+  .room-card-body ul { list-style: none; padding: 0; }
+  .room-card-body ul li { padding: 4px 0; color: #444; font-size: 0.9rem; }
+  .room-card-body ul li::before { content: "\2713  "; color: #e94560; font-weight: 700; }
+  .co-room ul li::before { color: #2d6a4f; }
+  .reviews-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 20px;
+  }
+  .review-card {
+    background: white;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 24px;
+  }
+  .review-stars { color: #e94560; font-size: 1rem; margin-bottom: 10px; }
+  .review-text { font-size: 0.95rem; color: #444; margin-bottom: 10px; font-style: italic; }
+  .review-author { font-size: 0.85rem; font-weight: 600; color: #1a1a2e; }
+  .location-list { max-width: 600px; margin: 0 auto; }
+  .location-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #eee;
+    font-size: 0.95rem;
+  }
+  .location-item .distance { color: #e94560; font-weight: 600; }
+  .location-item .distance.co { color: #2d6a4f; }
+  .property-sep {
+    border: none;
+    border-top: 3px solid #eee;
+    max-width: 1000px;
+    margin: 20px auto 0;
+  }
+  .bottom-cta {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+    text-align: center;
+    padding: 80px 24px;
+    color: white;
+  }
+  .bottom-cta h2 { font-size: 2rem; margin-bottom: 12px; }
+  .bottom-cta p { font-size: 1rem; opacity: 0.85; margin-bottom: 32px; }
+  .bottom-cta-buttons { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; }
+  #distance-banner {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 101;
+    background-color: red;
+    color: white;
+    text-align: center;
+    padding: 15px 24px;
+    font-size: 1rem;
+    font-weight: 600;
+    display: none;
+  }
   footer { text-align: center; padding: 24px; font-size: 0.85rem; color: #999; }
+  @media (max-width: 768px) {
+    .hero h1 { font-size: 2rem; }
+    .hero { height: 70vh; }
+    .details-grid { grid-template-columns: 1fr; gap: 24px; }
+    section { padding: 50px 20px; }
+    .hero-buttons { flex-direction: column; align-items: center; }
+  }
 </style>
 </head>
 <body>
-
 <div class="hero">
   <div class="hero-content">
     <h1>Two Properties. Two Destinations.</h1>
-    <p class="subtitle">Nashville, Tennessee · Silverthorne, Colorado<br>Both sleep 6. Both rated 4.8+ stars on Airbnb.</p>
-    <div>
+    <p class="subtitle">Nashville, Tennessee &nbsp;·&nbsp; Silverthorne, Colorado<br>Both sleep 6. Both rated 4.8+ stars on Airbnb.</p>
+    <div class="hero-buttons">
       <a href="https://airbnb.com/h/nashvillemusiccitystay" class="cta-button">View Nashville Property</a>
-      <a href="https://www.airbnb.com/rooms/920827114586721400" class="cta-button" style="background: #0ea5e9;">View Colorado Property</a>
+      <a href="https://www.airbnb.com/rooms/920827114586721400?photo_id=2158532606" class="cta-button co-button">View Colorado Property</a>
     </div>
   </div>
 </div>
-
 <div id="distance-banner"></div>
-
-<section>
-  <h2 class="section-title">Music City Retreat - Nashville</h2>
-  <p>Two themed bedrooms, sleeps 6. Free parking. Minutes from Broadway. 4.97 stars.</p>
-</section>
-
-<section>
-  <h2 class="section-title">River West 522 - Colorado</h2>
-  <p>Two themed bedrooms, sleeps 6. Mountain views. Ski access. 4.85 stars.</p>
-</section>
-
+<div class="property-picker">
+  <div class="picker-inner">
+    <a href="#nashville" class="picker-tab nashville">
+      Music City Retreat
+      <span>Nashville, TN · 4.97 stars</span>
+    </a>
+    <a href="#colorado" class="picker-tab colorado">
+      River West 522
+      <span>Silverthorne, CO · 4.85 stars</span>
+    </a>
+  </div>
+</div>
+<div id="nashville">
+  <div class="property-divider">
+    <div class="property-label nashville">Nashville, Tennessee</div>
+    <h2>Music City Retreat</h2>
+    <p class="prop-sub">Free Parking + Broadway Access</p>
+    <p class="prop-rating">★ 4.97 stars · 34 reviews · Airbnb Guest Favorite</p>
+    <a href="https://airbnb.com/h/nashvillemusiccitystay" class="cta-button">View Nashville Property</a>
+  </div>
+  <div class="property-image">
+    <img src="https://raw.githubusercontent.com/dcdcairbnb/DCDC_AirBnB/main/tn_airbnb_landing.avif" alt="Music City Retreat - Nashville Airbnb">
+  </div>
+  <section>
+    <h2 class="section-title">What's Included</h2>
+    <div class="amenities-grid">
+      <div class="amenity-card">
+        <div class="amenity-icon">🔑</div>
+        <h3>Self Check-In</h3>
+        <p>Keypad entry. Arrive on your schedule.</p>
+      </div>
+      <div class="amenity-card">
+        <div class="amenity-icon">📶</div>
+        <h3>Fast WiFi</h3>
+        <p>Stream, work, video call.</p>
+      </div>
+      <div class="amenity-card">
+        <div class="amenity-icon">🍳</div>
+        <h3>Full Kitchen</h3>
+        <p>Everything you need to cook.</p>
+      </div>
+      <div class="amenity-card">
+        <div class="amenity-icon">🚗</div>
+        <h3>Free Parking</h3>
+        <p>Save $40+/night vs. downtown lots.</p>
+      </div>
+      <div class="amenity-card">
+        <div class="amenity-icon">🎵</div>
+        <h3>Near Broadway</h3>
+        <p>Minutes from live music and nightlife.</p>
+      </div>
+      <div class="amenity-card">
+        <div class="amenity-icon">❄️</div>
+        <h3>A/C + Heat</h3>
+        <p>Climate control year-round.</p>
+      </div>
+    </div>
+  </section>
+  <section>
+    <h2 class="section-title">The Bedrooms</h2>
+    <div class="rooms-grid">
+      <div class="room-card">
+        <div class="room-card-header">
+          <div class="room-icon">🎸</div>
+          <h3>Bedroom 1</h3>
+          <div class="room-theme">Themed Room</div>
+        </div>
+        <div class="room-card-body">
+          <ul>
+            <li>1 bed</li>
+            <li>Uniquely themed decor</li>
+            <li>Comfortable bedding</li>
+            <li>Plenty of storage</li>
+          </ul>
+        </div>
+      </div>
+      <div class="room-card">
+        <div class="room-card-header">
+          <div class="room-icon">🎹</div>
+          <h3>Bedroom 2</h3>
+          <div class="room-theme">Themed Room</div>
+        </div>
+        <div class="room-card-body">
+          <ul>
+            <li>2 beds</li>
+            <li>Uniquely themed decor</li>
+            <li>Comfortable bedding</li>
+            <li>Plenty of storage</li>
+          </ul>
+        </div>
+      </div>
+      <div class="room-card">
+        <div class="room-card-header">
+          <div class="room-icon">🛋️</div>
+          <h3>Sleeps 6 Total</h3>
+          <div class="room-theme">Entire Home</div>
+        </div>
+        <div class="room-card-body">
+          <ul>
+            <li>2 bedrooms, 3 beds</li>
+            <li>1 full bathroom</li>
+            <li>Full living room</li>
+            <li>Full kitchen</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+  <div class="details-section">
+    <section>
+      <h2 class="section-title">The Space</h2>
+      <div class="details-grid">
+        <div class="detail-block">
+          <h3>The Property</h3>
+          <p>An entire home in Nashville with 2 uniquely themed bedrooms, 3 beds, and 1 bath. Sleeps 6 comfortably. Each bedroom has its own personality. Free parking on-site saves $40+ per night. Minutes from Broadway. Rated 4.97 stars.</p>
+        </div>
+        <div class="detail-block">
+          <h3>Quick Facts</h3>
+          <ul>
+            <li>2 themed bedrooms, 1 bathroom</li>
+            <li>3 beds, sleeps 6 guests</li>
+            <li>Free parking on-site</li>
+            <li>Minutes from Broadway</li>
+            <li>4.97 stars, 34 reviews</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </div>
+  <section>
+    <h2 class="section-title">What Guests Say</h2>
+    <div class="reviews-grid">
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"One of the best Airbnb experiences. Clean, exactly as shown, everything needed. 10/10."</p>
+        <p class="review-author">Nashville Guest</p>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Clean, comfortable and thoughtfully prepared. Perfect location for exploring the city."</p>
+        <p class="review-author">Nashville Guest</p>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Pictures online don't do it justice. Definitely 5-star. Would come back just to get away."</p>
+        <p class="review-author">Nashville Guest</p>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Had everything we needed. Host was friendly and helpful. Definitely stay here again."</p>
+        <p class="review-author">Nashville Guest</p>
+      </div>
+    </div>
+  </section>
+  <div class="details-section">
+    <section>
+      <h2 class="section-title">The Location</h2>
+      <div class="location-list">
+        <div class="location-item"><span>Broadway Honky-Tonks</span><span class="distance">Minutes away</span></div>
+        <div class="location-item"><span>Nissan Stadium</span><span class="distance">Short drive</span></div>
+        <div class="location-item"><span>The Gulch</span><span class="distance">Minutes away</span></div>
+        <div class="location-item"><span>Grand Ole Opry</span><span class="distance">15 min drive</span></div>
+        <div class="location-item"><span>Nashville International Airport</span><span class="distance">20 min drive</span></div>
+      </div>
+    </section>
+  </div>
+</div>
+<hr class="property-sep">
+<div id="colorado">
+  <div class="property-divider">
+    <div class="property-label colorado">Silverthorne, Colorado</div>
+    <h2>River West 522</h2>
+    <p class="prop-sub">Mountain Condo · Minutes from Keystone & Breckenridge</p>
+    <p class="prop-rating">★ 4.85 stars · 13 reviews</p>
+    <a href="https://www.airbnb.com/rooms/920827114586721400" class="cta-button co-button">View Colorado Property</a>
+  </div>
+  <div class="property-image">
+    <img src="https://raw.githubusercontent.com/dcdcairbnb/DCDC_AirBnB/main/Co_landing_page.avif" alt="River West 522 - Mountain Condo in Colorado">
+  </div>
+  <section>
+    <h2 class="section-title">What's Included</h2>
+    <div class="amenities-grid">
+      <div class="amenity-card">
+        <div class="amenity-icon">🔑</div>
+        <h3>Self Check-In</h3>
+        <p>Arrive on your schedule.</p>
+      </div>
+      <div class="amenity-card">
+        <div class="amenity-icon">📶</div>
+        <h3>Fast WiFi</h3>
+        <p>Stream, work, video call.</p>
+      </div>
+      <div class="amenity-card">
+        <div class="amenity-icon">🍳</div>
+        <h3>Full Kitchen</h3>
+        <p>Cook after a day on the mountain.</p>
+      </div>
+      <div class="amenity-card">
+        <div class="amenity-icon">⛷️</div>
+        <h3>Ski Access</h3>
+        <p>Minutes from Keystone and Breckenridge.</p>
+      </div>
+      <div class="amenity-card">
+        <div class="amenity-icon">🏔️</div>
+        <h3>Mountain Views</h3>
+        <p>Summit County scenery year-round.</p>
+      </div>
+      <div class="amenity-card">
+        <div class="amenity-icon">❄️</div>
+        <h3>A/C + Heat</h3>
+        <p>Climate control year-round.</p>
+      </div>
+    </div>
+  </section>
+  <section>
+    <h2 class="section-title">The Bedrooms</h2>
+    <div class="rooms-grid">
+      <div class="room-card">
+        <div class="room-card-header co">
+          <div class="room-icon">⛷️</div>
+          <h3>Bedroom 1</h3>
+          <div class="room-theme">Mountain Room</div>
+        </div>
+        <div class="room-card-body co-room">
+          <ul>
+            <li>2 beds</li>
+            <li>Mountain-inspired decor</li>
+            <li>Comfortable bedding</li>
+            <li>Plenty of storage</li>
+          </ul>
+        </div>
+      </div>
+      <div class="room-card">
+        <div class="room-card-header co">
+          <div class="room-icon">🌲</div>
+          <h3>Bedroom 2</h3>
+          <div class="room-theme">Mountain Room</div>
+        </div>
+        <div class="room-card-body co-room">
+          <ul>
+            <li>2 beds</li>
+            <li>Mountain-inspired decor</li>
+            <li>Comfortable bedding</li>
+            <li>Plenty of storage</li>
+          </ul>
+        </div>
+      </div>
+      <div class="room-card">
+        <div class="room-card-header co">
+          <div class="room-icon">🛋️</div>
+          <h3>Sleeps 6 Total</h3>
+          <div class="room-theme">Entire Condo</div>
+        </div>
+        <div class="room-card-body co-room">
+          <ul>
+            <li>2 bedrooms, 4 beds</li>
+            <li>2 full bathrooms</li>
+            <li>Full living room</li>
+            <li>Full kitchen</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+  <div class="details-section">
+    <section>
+      <h2 class="section-title">The Space</h2>
+      <div class="details-grid">
+        <div class="detail-block">
+          <h3>The Property</h3>
+          <p>A mountain condo in Silverthorne with 2 bedrooms, 4 beds, and 2 full baths. Sleeps 6 comfortably. Minutes from Keystone Resort and short drive from Breckenridge. Perfect for ski season or summer mountain escapes.</p>
+        </div>
+        <div class="detail-block co-check">
+          <h3>Quick Facts</h3>
+          <ul>
+            <li>2 bedrooms, 2 full bathrooms</li>
+            <li>4 beds, sleeps 6 guests</li>
+            <li>Minutes from Keystone Resort</li>
+            <li>Short drive to Breckenridge</li>
+            <li>4.85 stars, 13 reviews</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+  </div>
+  <section>
+    <h2 class="section-title">What Guests Say</h2>
+    <div class="reviews-grid">
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Great ski rental. Very well appointed, communicative hosts, excellent facility. Very sad to leave."</p>
+        <p class="review-author">Colorado Guest</p>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Very clean, well-sized condo in great location. Host was super responsive. Perfect home base."</p>
+        <p class="review-author">Colorado Guest</p>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Very clean, comfortable condo for a family ski weekend. Close to many skiing mountains."</p>
+        <p class="review-author">Colorado Guest</p>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Nicely furnished and clean. Ample space for parents and kids. Close to skiing. Host very responsive."</p>
+        <p class="review-author">Colorado Guest</p>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Great location, near everything. Beautiful decor with all furnishings needed. Great host."</p>
+        <p class="review-author">Colorado Guest</p>
+      </div>
+      <div class="review-card">
+        <div class="review-stars">★★★★★</div>
+        <p class="review-text">"Loved the location and condo. Well stocked kitchen. Great for us and our four kids."</p>
+        <p class="review-author">Colorado Guest</p>
+      </div>
+    </div>
+  </section>
+  <div class="details-section" style="background: white;">
+    <section>
+      <h2 class="section-title">The Location</h2>
+      <div class="location-list">
+        <div class="location-item"><span>Keystone Resort</span><span class="distance co">Minutes away</span></div>
+        <div class="location-item"><span>Breckenridge Ski Resort</span><span class="distance co">Short drive</span></div>
+        <div class="location-item"><span>Lake Dillon</span><span class="distance co">Minutes away</span></div>
+        <div class="location-item"><span>Outlets at Silverthorne</span><span class="distance co">Walking distance</span></div>
+        <div class="location-item"><span>Denver International Airport</span><span class="distance co">~1.5 hr drive</span></div>
+      </div>
+    </section>
+  </div>
+</div>
+<div class="bottom-cta">
+  <h2>Ready to Book?</h2>
+  <p>Nashville or the mountains. Pick your next trip.</p>
+  <div class="bottom-cta-buttons">
+    <a href="https://airbnb.com/h/nashvillemusiccitystay" class="cta-button">View Nashville Property</a>
+    <a href="https://www.airbnb.com/rooms/920827114586721400" class="cta-button co-button">View Colorado Property</a>
+  </div>
+</div>
 <footer>
-  <p>&copy; 2026 DCDC Airbnb Properties. All rights reserved.</p>
+  <p>Music City Retreat (Nashville) · River West 522 (Silverthorne) · dcdcairbnb@gmail.com</p>
+  <p style="margin-top: 8px;"><a href="https://dcdcairbnb.github.io/DCDC_AirBnB/" style="color: #0ea5e9; text-decoration: none;">dcdcairbnb.github.io/DCDC_AirBnB</a></p>
 </footer>
 
 <script>
