@@ -97,7 +97,7 @@
         var geoData = { date: date, time: time, city: city, state: state, country: country, distance_to_nashville: dNash, distance_to_colorado: dCo };
         localStorage.setItem('geo_' + date + '_' + time.replace(/:/g, '-'), JSON.stringify(geoData));
 
-        fetch('http://localhost:5000/log-geolocation', {
+        fetch('https://dcdcairbnb.pythonanywhere.com/log-geolocation', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(geoData)
